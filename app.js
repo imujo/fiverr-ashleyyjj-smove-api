@@ -40,7 +40,7 @@ RATINGS
 |----- rating option
 |----- rating
 |----- userId
-|----- websiteId
+|----- properyId
 |----- date added
 |----- date updated
 
@@ -85,7 +85,7 @@ app.use(cors())
 
 const store = new KnexSessionStore({
     db,
-    tablename: 'sessions', 
+    tablename: 'sessions'
   });
 
 app.use(session({
