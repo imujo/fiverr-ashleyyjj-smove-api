@@ -42,9 +42,10 @@ router.post('/properties', (req, res)=>{
         .then(()=>{
             db('properties').where({websiteurl: websiteurl}).select().first()
                 .then(data => res.json({isSuccess: true, details: 'Property added', propertyid: data.id}))
-                .catch(e => res.status(400).json({isSuccess: false, details: 'Unable add the property'}))
+                .catch(e => {console.log(e);res.status(400).json({isSuccess: false, details: 'Unable add the property'})})
         })
         .catch(e => {
+            console.log(e)
             res.status(400).json({isSuccess: false, details: 'Unable add the property'})
         })
 })
@@ -267,7 +268,7 @@ router.post('/ratings/add', (req, res)=>{
         userid: userid
     })
         .then((data)=>res.json({isSuccess: true, details: 'Rating added'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable add the rating'}))
+        .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable add the rating'})})
 })
 
 // update
