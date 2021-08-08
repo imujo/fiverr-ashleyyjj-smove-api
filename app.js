@@ -34,6 +34,14 @@ PROPERTIES
 |----- userId
 |----- date added
 
+USER PROPERTIES
+|
+|----- id
+|----- propertyId
+|----- userId
+|----- dashbord location
+|----- 
+
 RATINGS
 |
 |----- id

@@ -65,17 +65,34 @@ router.get('/logout', (req, res)=>{
 
 router.get('/user', (req, res)=>{
         
-    let isAuth = true
-    if (req.user === undefined) {
-        req.user = [{}]
-        isAuth = false
+    // let isAuth = true
+    // if (req.user === undefined) {
+    //     req.user = [{}]
+    //     isAuth = false
+    // }
+    // const userObject = req.user[0]
+
+    // delete userObject.hash
+    // delete userObject.salt
+
+    // if (isAuth){
+    //     res.json({user: userObject, isauth: isAuth})
+    // }else{
+    //     res.status(400).json({user: userObject, isauth: isAuth})
+    // }
+
+    const user = {
+        id: 6,
+        firstname: 'Josh',
+        lastname: 'ua',
+        ratingoption1: 'No. of bathrooms',
+        ratingoption2: 'No. of bedrooms',
+        ratingoption3: 'View',
+        ratingoption4: 'Location',
     }
-    const userObject = req.user[0]
 
-    delete userObject.hash
-    delete userObject.salt
+    res.json(user)
 
-    res.json({user: userObject, isauth: isAuth})
 })
 
 router.post('/usersetup', (req, res)=>{

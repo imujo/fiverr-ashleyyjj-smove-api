@@ -20,20 +20,15 @@ router.get('/properties', (req, res)=>{
 router.post('/properties/one', (req, res)=>{
     const {websiteurl} = req.body
 
-    // const {userid} = req.user
-    const userid = 6
 
-    db('properties').where({websiteurl: websiteurl}).andWhere({userid: userid}).select().first()
+    db('properties').where({websiteurl: websiteurl}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
         .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get property'}))
 })
 
 // post
 router.post('/properties', (req, res)=>{
-    // const {userid} = req.user
-    const userid = 6
-
-    const { websiteurl, address, imageurl, price, bedrooms, bathrooms, note} = req.body
+    const { websiteurl, address, imageurl, price, bedrooms, bathrooms} = req.body
 
 
     db('properties').insert({
@@ -43,12 +38,13 @@ router.post('/properties', (req, res)=>{
         price: price,
         bedrooms: bedrooms,
         bathrooms: bathrooms,
-        note: note,
-        userid: userid
     })
-        .then((data)=>res.json({isSuccess: true, details: 'Property added'}))
+        .then(()=>{
+            db('properties').where({websiteurl: websiteurl}).select().first()
+                .then(data => res.json({isSuccess: true, details: 'Property added', propertyid: data.id}))
+                .catch(e => res.status(400).json({isSuccess: false, details: 'Unable add the property'}))
+        })
         .catch(e => {
-            console.log(e)
             res.status(400).json({isSuccess: false, details: 'Unable add the property'})
         })
 })
@@ -57,12 +53,10 @@ router.post('/properties', (req, res)=>{
 router.put('/properties/:propertyId', (req, res)=>{
     const propertyId = req.params.propertyId
 
-    // const {userid} = req.user
-    const userid = 6
 
     const { websiteurl, address, imageurl, price, bedrooms, bathrooms} = req.body
 
-    db('properties').where({id: propertyId}).andWhere({userid: userid}).update({
+    db('properties').where({id: propertyId}).update({
         websiteurl: websiteurl,
         address: address,
         imageurl: imageurl,
@@ -80,12 +74,91 @@ router.put('/properties/:propertyId', (req, res)=>{
 router.delete('/properties/:propertyId', (req, res)=>{
     const propertyId = req.params.propertyId
 
+
+    db('properties').where({id: propertyId}).del()
+        .then((data)=>res.json({isSuccess: true, details: 'Property deleted'}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete property'}))
+})
+
+//#endregion
+
+
+//#region <---------- USER PROPERTIES ----------> 
+
+// get all
+router.get('/userproperties', (req, res)=>{
+
     // const {userid} = req.user
     const userid = 6
 
-    db('properties').where({id: propertyId}).andWhere({userid: userid}).del()
-        .then((data)=>res.json({isSuccess: true, details: 'Property deleted'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete property'}))
+    db('userproperties').where({userid: userid}).select()
+        .then((data)=>res.json({isSuccess: true, data: data}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get user properties'}))
+})
+
+// get one
+router.get('/userproperties/:propertyId', (req, res)=>{
+    const propertyId = req.params.propertyId
+
+    // const {userid} = req.user
+    const userid = 6
+
+    db('userproperties').where({propertyid: propertyId}).andWhere({userid: userid}).select().first()
+        .then((data)=>res.json({isSuccess: true, data: data}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get user property'}))
+})
+
+// post
+router.post('/userproperties', (req, res)=>{
+    // const {userid} = req.user
+    const userid = 6
+
+    const { websiteurl } = req.body
+    
+
+
+    db('userproperties').insert({
+        websiteurl: websiteurl,
+        userid: userid
+    })
+        .then((data)=>res.json({isSuccess: true, details: 'User property added'}))
+        .catch(e => {
+            console.log(e)
+            res.status(400).json({isSuccess: false, details: 'Unable add the user property'})
+        })
+})
+
+
+
+// delete
+router.delete('/userproperties/:userPropertyId', (req, res)=>{
+    const userPropertyId = req.params.userPropertyId
+
+    // const {userid} = req.user
+    const userid = 6
+
+    db('userproperties').where({id: userPropertyId}).andWhere({userid: userid}).del()
+        .then((data)=>res.json({isSuccess: true, details: 'User property deleted'}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete user property'}))
+})
+
+// add note
+router.put('/userproperties/note', (req, res)=>{
+
+    // const {userid} = req.user
+    const userid = 6
+
+    const { note, websiteurl } = req.body
+
+    console.log('UPDATE NOTE')
+
+    db('userproperties').where({websiteurl: websiteurl}).andWhere({userid: userid}).update({
+        note: note,
+        dateupdated: new Date()
+    })
+        .then((data)=>res.json({isSuccess: true, details: 'User property updated'}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to update user property'}))
+    
 })
 
 //#endregion
@@ -152,41 +225,45 @@ router.delete('/ratingoptions/:ratingOptionId', (req, res)=>{
 
 //#region <---------- RATINGS ----------> 
 
-// get all
-router.get('/ratings', (req, res)=>{
+// get rating by website and ratingoption
+router.post('/ratings', (req, res)=>{
 
+    const { websiteurl, ratingoption } = req.body
     // const {userid} = req.user
     const userid = 6
 
-    db('ratings').where({userid: userid}).select()
-        .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get ratings'}))
-})
-
-// get one
-router.get('/ratings/:ratingId', (req, res)=>{
-    const ratingId = req.params.ratingId
-
-    // const {userid} = req.user
-    const userid = 6
-
-    db('ratings').where({id: ratingId}).andWhere({userid: userid}).select().first()
+    db('ratings').where({userid: userid}).andWhere({websiteurl: websiteurl}).andWhere({ratingoption: ratingoption}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
         .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get rating'}))
 })
 
-// post
-router.post('/ratings', (req, res)=>{
+// get all ratings and rating options for website
+router.post('/ratings/all', (req, res)=>{
+
+    const { websiteurl } = req.body
     // const {userid} = req.user
     const userid = 6
+    console.log(websiteurl)
 
-    const { ratingoption, rating, propertyid } = req.body
+    db('ratings').where({userid: userid}).andWhere({websiteurl: websiteurl}).select()
+        .then((data)=>res.json({isSuccess: true, data: data}))
+        .catch(e => {res.status(400).json({isSuccess: false, details: 'Unable to get rating'}); console.log(e)})
+})
+
+
+// post
+router.post('/ratings/add', (req, res)=>{
+    // const {userid} = req.user
+    const userid = 6
+    console.log('ratings')
+
+    const { ratingoption, rating, websiteurl } = req.body
 
 
     db('ratings').insert({
         ratingoption: ratingoption,
         rating: rating,
-        propertyid: propertyid,
+        websiteurl: websiteurl,
         userid: userid
     })
         .then((data)=>res.json({isSuccess: true, details: 'Rating added'}))
@@ -200,13 +277,13 @@ router.put('/ratings/:ratingId', (req, res)=>{
     // const {userid} = req.user
     const userid = 6
 
-    const { ratingoption, rating, propertyid } = req.body
+    const { ratingoption, rating, websiteurl } = req.body
 
 
     db('ratings').where({id: ratingId}).andWhere({userid: userid}).update({
         ratingoption: ratingoption,
         rating: rating,
-        propertyid: propertyid,
+        websiteurl: websiteurl,
         userid: userid,
         dateupdated: new Date()
     })
@@ -226,6 +303,8 @@ router.delete('/ratings/:ratingId', (req, res)=>{
         .then((data)=>res.json({isSuccess: true, details: 'Rating deleted'}))
         .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete rating'}))
 })
+
+
 
 //#endregion
 
@@ -291,6 +370,84 @@ router.delete('/ratingcategories/:ratingCategoriesId', (req, res)=>{
 
 //#endregion
 
+
+//#region <---------- USER PROPERTIES ----------> 
+
+// get all
+router.get('/users', (req, res)=>{
+
+    // const {userid} = req.user
+    const userid = 6
+
+    db('users').where({id: userid}).select()
+        .then((data)=>res.json({isSuccess: true, data: data}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get user properties'}))
+})
+
+// get one
+router.get('/users/:propertyId', (req, res)=>{
+    const propertyId = req.params.propertyId
+
+    // const {userid} = req.user
+    const userid = 6
+
+    db('users').where({propertyid: propertyId}).andWhere({id: userid}).select().first()
+        .then((data)=>res.json({isSuccess: true, data: data}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get user property'}))
+})
+
+// post
+router.post('/users', (req, res)=>{
+    // const {userid} = req.user
+    const userid = 6
+
+    const { propertyid } = req.body
+
+
+    db('users').insert({
+        propertyid: propertyid,
+        userid: userid
+    })
+        .then((data)=>res.json({isSuccess: true, details: 'User property added'}))
+        .catch(e => {
+            console.log(e)
+            res.status(400).json({isSuccess: false, details: 'Unable add the user property'})
+        })
+})
+
+// update
+router.put('/users/:userPropertyId', (req, res)=>{
+    const userPropertyId = req.params.userPropertyId
+
+    // const {userid} = req.user
+    const userid = 6
+
+    const { propertyid, dashboardlocation } = req.body
+
+    db('users').where({id: userPropertyId}).andWhere({id: userid}).update({
+        propertyid: propertyid,
+        userid: userid,
+        dashboardlocation: dashboardlocation,
+        dateupdated: new Date()
+    })
+        .then((data)=>res.json({isSuccess: true, details: 'User property updated'}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to update user property'}))
+    
+})
+
+// delete
+router.delete('/users/:userPropertyId', (req, res)=>{
+    const userPropertyId = req.params.userPropertyId
+
+    // const {userid} = req.user
+    const userid = 6
+
+    db('users').where({id: userPropertyId}).andWhere({id: userid}).del()
+        .then((data)=>res.json({isSuccess: true, details: 'User property deleted'}))
+        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete user property'}))
+})
+
+//#endregion
 
 
 module.exports = router;
