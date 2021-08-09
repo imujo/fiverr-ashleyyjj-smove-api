@@ -13,7 +13,7 @@ router.get('/properties', (req, res)=>{
 
     db('properties').where({userid: userid}).select()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get properties'}))
+        .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get properties'})})
 })
 
 // get one
@@ -23,7 +23,7 @@ router.post('/properties/one', (req, res)=>{
 
     db('properties').where({websiteurl: websiteurl}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get property'}))
+        .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get property'})})
 })
 
 // post
@@ -42,7 +42,7 @@ router.post('/properties', (req, res)=>{
         .then(()=>{
             db('properties').where({websiteurl: websiteurl}).select().first()
                 .then(data => res.json({isSuccess: true, details: 'Property added', propertyid: data.id}))
-                .catch(e => {console.log(e);res.status(400).json({isSuccess: false, details: 'Unable add the property'})})
+                .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable add the property'})})
         })
         .catch(e => {
             console.log(e)
@@ -67,7 +67,7 @@ router.put('/properties/:propertyId', (req, res)=>{
         dateupdated: new Date()
     })
         .then((data)=>res.json({isSuccess: true, details: 'Property updated'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to update property'}))
+        .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to update property'})})
     
 })
 
@@ -78,7 +78,7 @@ router.delete('/properties/:propertyId', (req, res)=>{
 
     db('properties').where({id: propertyId}).del()
         .then((data)=>res.json({isSuccess: true, details: 'Property deleted'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete property'}))
+        .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete property'})})
 })
 
 //#endregion
@@ -94,7 +94,7 @@ router.get('/userproperties', (req, res)=>{
 
     db('userproperties').where({userid: userid}).select()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get user properties'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get user properties'})})
 })
 
 // get one
@@ -106,7 +106,7 @@ router.get('/userproperties/:propertyId', (req, res)=>{
 
     db('userproperties').where({propertyid: propertyId}).andWhere({userid: userid}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get user property'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get user property'})})
 })
 
 // post
@@ -140,7 +140,7 @@ router.delete('/userproperties/:userPropertyId', (req, res)=>{
 
     db('userproperties').where({id: userPropertyId}).andWhere({userid: userid}).del()
         .then((data)=>res.json({isSuccess: true, details: 'User property deleted'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete user property'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete user property'})})
 })
 
 // add note
@@ -158,7 +158,7 @@ router.put('/userproperties/note', (req, res)=>{
         dateupdated: new Date()
     })
         .then((data)=>res.json({isSuccess: true, details: 'User property updated'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to update user property'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to update user property'})})
     
 })
 
@@ -172,7 +172,7 @@ router.get('/ratingoptions', (req, res)=>{
 
     db('ratingoptions').select()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get rating options'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get rating options'})})
 })
 
 // get one
@@ -181,7 +181,7 @@ router.get('/ratingoptions/:ratingOptionId', (req, res)=>{
 
     db('ratingoptions').where({id: ratingOptionId}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get rating option'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get rating option'})})
 })
 
 // post
@@ -194,7 +194,7 @@ router.post('/ratingoptions', (req, res)=>{
         ratingcategory: ratingcategory
     })
         .then((data)=>res.json({isSuccess: true, details: 'Rating option added'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable add the rating option'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable add the rating option'})})
 })
 
 // update
@@ -208,7 +208,7 @@ router.put('/ratingoptions/:ratingOptionId', (req, res)=>{
         dateupdated: new Date()
     })
         .then((data)=>res.json({isSuccess: true, details: 'Rating option updated'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to update add rating option'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to update add rating option'})})
     
 })
 
@@ -218,7 +218,7 @@ router.delete('/ratingoptions/:ratingOptionId', (req, res)=>{
 
     db('ratingoptions').where({id: ratingOptionId}).del()
         .then((data)=>res.json({isSuccess: true, details: 'Rating Option deleted'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete rating option'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete rating option'})})
 })
 
 //#endregion
@@ -235,7 +235,7 @@ router.post('/ratings', (req, res)=>{
 
     db('ratings').where({userid: userid}).andWhere({websiteurl: websiteurl}).andWhere({ratingoption: ratingoption}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get rating'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get rating'})})
 })
 
 // get all ratings and rating options for website
@@ -248,7 +248,7 @@ router.post('/ratings/all', (req, res)=>{
 
     db('ratings').where({userid: userid}).andWhere({websiteurl: websiteurl}).select()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => {res.status(400).json({isSuccess: false, details: 'Unable to get rating'}); console.log(e)})
+            .catch(e => {{console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get rating'}); console.log(e)}})
 })
 
 
@@ -268,7 +268,7 @@ router.post('/ratings/add', (req, res)=>{
         userid: userid
     })
         .then((data)=>res.json({isSuccess: true, details: 'Rating added'}))
-        .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable add the rating'})})
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable add the rating'})})
 })
 
 // update
@@ -289,7 +289,7 @@ router.put('/ratings/:ratingId', (req, res)=>{
         dateupdated: new Date()
     })
         .then((data)=>res.json({isSuccess: true, details: 'Rating updated'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to update rating'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to update rating'})})
     
 })
 
@@ -302,7 +302,7 @@ router.delete('/ratings/:ratingId', (req, res)=>{
 
     db('ratings').where({id: ratingId}).andWhere({userid: userid}).del()
         .then((data)=>res.json({isSuccess: true, details: 'Rating deleted'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete rating'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete rating'})})
 })
 
 
@@ -318,7 +318,7 @@ router.get('/ratingcategories', (req, res)=>{
 
     db('ratingcategories').select()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get rating categories'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get rating categories'})})
 })
 
 // get one
@@ -328,7 +328,7 @@ router.get('/ratingcategories/:ratingCategoriesId', (req, res)=>{
 
     db('ratingcategories').where({id: ratingCategoriesId}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get rating category'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get rating category'})})
 })
 
 // post
@@ -340,7 +340,7 @@ router.post('/ratingcategories', (req, res)=>{
         category: category
     })
         .then((data)=>res.json({isSuccess: true, details: 'Rating category added'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable add rating category'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable add rating category'})})
 })
 
 // update
@@ -355,7 +355,7 @@ router.put('/ratingcategories/:ratingCategoriesId', (req, res)=>{
         dateupdated: new Date()
     })
         .then((data)=>res.json({isSuccess: true, details: 'Rating category updated'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to update rating category'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to update rating category'})})
     
 })
 
@@ -366,7 +366,7 @@ router.delete('/ratingcategories/:ratingCategoriesId', (req, res)=>{
 
     db('ratingcategories').where({id: ratingCategoriesId}).del()
         .then((data)=>res.json({isSuccess: true, details: 'Rating category deleted'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete rating category'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete rating category'})})
 })
 
 //#endregion
@@ -382,7 +382,7 @@ router.get('/users', (req, res)=>{
 
     db('users').where({id: userid}).select()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get user properties'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get user properties'})})
 })
 
 // get one
@@ -394,7 +394,7 @@ router.get('/users/:propertyId', (req, res)=>{
 
     db('users').where({propertyid: propertyId}).andWhere({id: userid}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to get user property'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get user property'})})
 })
 
 // post
@@ -432,7 +432,7 @@ router.put('/users/:userPropertyId', (req, res)=>{
         dateupdated: new Date()
     })
         .then((data)=>res.json({isSuccess: true, details: 'User property updated'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to update user property'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to update user property'})})
     
 })
 
@@ -445,7 +445,7 @@ router.delete('/users/:userPropertyId', (req, res)=>{
 
     db('users').where({id: userPropertyId}).andWhere({id: userid}).del()
         .then((data)=>res.json({isSuccess: true, details: 'User property deleted'}))
-        .catch(e => res.status(400).json({isSuccess: false, details: 'Unable to delete user property'}))
+            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete user property'})})
 })
 
 //#endregion
