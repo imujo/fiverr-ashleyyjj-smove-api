@@ -39,13 +39,16 @@ passport.use(strategy)
 
 
 passport.serializeUser((user, done)=>{
+    console.log('serialize')
     done(null, user[0].id)
 })
 
 passport.deserializeUser((userId, done)=>{
+    console.log('deserialize')
+
     db.select('*').from('users').where({id: userId})
         .then(user=>{
             done(null, user)
         })
-        .catch(err => done(err))
+        .catch(err => done(err, false))
 })

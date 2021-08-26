@@ -82,6 +82,7 @@ const passport = require('passport');
 const authRoutes = require('./routes/authRoutes')
 const apiRoutes = require('./routes/apiRoutes')
 
+require('dotenv').config();
 
 const app = express()
 
@@ -91,9 +92,10 @@ app.use(cors())
 // app.use(express.static('public'));
 
 
+// SETTING UP SESSION STORAGE (COOKIES AND AUTH STORAGE)
 const store = new KnexSessionStore({
     db,
-    tablename: 'sessions'
+    tablename: 'sessions', 
   });
 
 app.use(session({
@@ -102,14 +104,21 @@ app.use(session({
     saveUninitialized: true,
     store: store,
     cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 3
+        maxAge: 1000 * 60 * 60 * 24
     },
 }))
 
 
+
+
+
+
+// INITIALIZING PASSPORT
+
 require('./config/passport');
 app.use(passport.initialize())
 app.use(passport.session())
+
 
 
 app.use('/auth', authRoutes)
