@@ -1,54 +1,38 @@
 const db = require('./database')
-const passport = require('passport')
-const LocalStrategy = require('passport-local').Strategy
-const {validatePassword} = require('../lib/passwordUtils')
+const JwtStrategy = require('passport-jwt').Strategy
+const ExtractJwt = require('passport-jwt').ExtractJwt
+const fs = require('fs');
+const path = require('path');
+
+const pathToKey = path.join(__dirname, '..', 'id_rsa_pub.pem');
+const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
 
 
-const parameters ={
-    usernameField: 'email',
-    passwordField: 'password'
-}
-
-const verifyCallback = (email, password, done) =>{
-
-    db.select('*').from('users').where({email: email})
-        .then(user =>{
-            if (user.length === 0) {return done(null, false, { message: 'A user with that email was not found'})}
-
-            const isValid = validatePassword(password, user[0].hash, user[0].salt)
-
-
-            if (isValid){
-                return done(null, user);
-            }else{
-                return done(null, false, { message: 'Password is incorrect'})
-            }
-        })
-        .catch(err=>{
-            done(err , false)
-        })
-
-}
+const options = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: PUB_KEY,
+    algorithms: ['RS256']
+  };
 
 
 
-const strategy = new LocalStrategy(parameters, verifyCallback)
+const strategy = new JwtStrategy(options, (payload, done)=>{
 
-
-passport.use(strategy)
-
-
-passport.serializeUser((user, done)=>{
-    console.log('serialize')
-    done(null, user[0].id)
-})
-
-passport.deserializeUser((userId, done)=>{
-    console.log('deserialize')
-
-    db.select('*').from('users').where({id: userId})
-        .then(user=>{
-            done(null, user)
+    db('users').where({id: payload.sub}).first()
+        .then((user)=> {
+            user ? done(null, user) : done(null, false)
         })
         .catch(err => done(err, false))
 })
+
+
+
+module.exports = (passport) => {
+    passport.use(strategy)
+}
+
+
+
+
+
+

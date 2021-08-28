@@ -3,13 +3,14 @@ const db = require('../config/database')
 
 
 
+
 //#region <---------- PROPERTIES ----------> 
 
 // get all
 router.get('/properties', (req, res)=>{
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     db('properties').where({userid: userid}).select()
         .then((data)=>res.json({isSuccess: true, data: data}))
@@ -89,8 +90,8 @@ router.delete('/properties/:propertyId', (req, res)=>{
 // get all
 router.get('/userproperties', (req, res)=>{
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     db('userproperties').where({userid: userid}).select()
         .then((data)=>res.json({isSuccess: true, data: data}))
@@ -101,8 +102,8 @@ router.get('/userproperties', (req, res)=>{
 router.post('/userproperties/one', (req, res)=>{
     const websiteurl = req.body.websiteurl
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     db('userproperties').where({websiteurl: websiteurl}).andWhere({userid: userid}).select().first()
         .then((data)=>res.json({isSuccess: true, data: data}))
@@ -111,10 +112,11 @@ router.post('/userproperties/one', (req, res)=>{
 
 // post
 router.post('/userproperties', (req, res)=>{
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     const { websiteurl } = req.body
+    console.log(websiteurl)
     
 
 
@@ -132,22 +134,26 @@ router.post('/userproperties', (req, res)=>{
 
 
 // delete
-router.delete('/userproperties/:userPropertyId', (req, res)=>{
-    const userPropertyId = req.params.userPropertyId
+router.delete('/userproperties', (req, res)=>{
+    const websiteurl = req.body.websiteurl
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
-    db('userproperties').where({id: userPropertyId}).andWhere({userid: userid}).del()
-        .then((data)=>res.json({isSuccess: true, details: 'User property deleted'}))
-            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete user property'})})
+    db('userproperties').where({websiteurl: websiteurl}).andWhere({userid: userid}).del()
+        .then(()=> {
+            db('ratings').where({websiteurl: websiteurl}).andWhere({userid: userid}).del()
+                .then((data)=> res.json({isSuccess: true, details: 'User property deleted'}))
+                .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete user property'})})
+        })
+        .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to delete user property'})})
 })
 
 // add note
 router.put('/userproperties/note', (req, res)=>{
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     const { note, websiteurl } = req.body
 
@@ -167,8 +173,8 @@ router.put('/userproperties/note', (req, res)=>{
 // update dashboard location
 router.put('/userproperties/dashboardlocation', (req, res)=>{
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     const { dashboardlocation, websiteurl } = req.body
 
@@ -188,8 +194,8 @@ router.put('/userproperties/dashboardlocation', (req, res)=>{
 router.post('/userproperties/move_to_rated', (req, res)=>{
 
     const { websiteurl } = req.body
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     db('userproperties').where({userid: userid}).andWhere({websiteurl: websiteurl}).select('dashboardlocation').first()
         .then(data => {
@@ -216,10 +222,10 @@ router.put('/userproperties/viewnigDetails', (req, res)=>{
 
     console.log('UPDATE VIEWING DETAILS')
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
-    const { websiteurl, viewing_date, viewing_time, viewing_address } = req.body
+    const { websiteurl, viewing_date, viewing_time, viewing_address, dashboardlocation } = req.body
 
 
 
@@ -231,7 +237,7 @@ router.put('/userproperties/viewnigDetails', (req, res)=>{
     })
         
         .then(()=> {
-            if ( viewing_address && viewing_date && viewing_time){
+            if ( viewing_address && viewing_date && viewing_time && dashboardlocation === 'to_view'){
                 db('userproperties').where({websiteurl: websiteurl}).andWhere({userid: userid}).update({
                     dashboardlocation: 'upcoming_viewings'
                 })
@@ -249,8 +255,8 @@ router.put('/userproperties/viewnigDetails', (req, res)=>{
 router.post('/userproperties/viewnigDetails', (req, res)=>{
 
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     const { websiteurl } = req.body
 
@@ -277,11 +283,20 @@ router.get('/ratingoptions', (req, res)=>{
 })
 
 // get one
-router.get('/ratingoptions/:ratingOptionId', (req, res)=>{
-    const ratingOptionId = req.params.ratingOptionId
+router.get('/ratingoptions/:ratingCategory', (req, res)=>{
+    const ratingCategory = req.params.ratingCategory
 
-    db('ratingoptions').where({id: ratingOptionId}).select().first()
-        .then((data)=>res.json({isSuccess: true, data: data}))
+    console.log(ratingCategory)
+
+    db('ratingoptions').where({ratingcategory: ratingCategory}).select()
+        .then((data)=>{
+            let optionsArray = []
+            for (let i=0; i<data.length; i++){
+                optionsArray.push(data[i].ratingoption)
+            }
+
+            res.json({isSuccess: true, data: optionsArray})
+        })
             .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get rating option'})})
 })
 
@@ -331,8 +346,8 @@ router.delete('/ratingoptions/:ratingOptionId', (req, res)=>{
 router.post('/ratings', (req, res)=>{
 
     const { websiteurl, ratingoption } = req.body
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     db('ratings').where({userid: userid}).andWhere({websiteurl: websiteurl}).andWhere({ratingoption: ratingoption}).select('rating').first()
         .then((data)=>res.json({isSuccess: true, data: data.rating}))
@@ -343,9 +358,8 @@ router.post('/ratings', (req, res)=>{
 router.post('/ratings/all', (req, res)=>{
 
     const { websiteurl } = req.body
-    // const {userid} = req.user
-    const userid = 34
-    console.log(websiteurl)
+    const userid = req.user.id
+    
 
     db('ratings').where({userid: userid}).andWhere({websiteurl: websiteurl}).select('rating', 'ratingoption').orderBy('id')
         .then((data)=> res.json({isSuccess: true, data: data}))
@@ -355,8 +369,8 @@ router.post('/ratings/all', (req, res)=>{
 
 // post
 router.post('/ratings/add', (req, res)=>{
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
     console.log('ratings')
 
     const { ratingoption, rating, websiteurl } = req.body
@@ -374,8 +388,8 @@ router.post('/ratings/add', (req, res)=>{
 
 // update
 router.put('/ratings', (req, res)=>{
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     const { newrating, ratingoption, websiteurl } = req.body
 
@@ -393,8 +407,8 @@ router.put('/ratings', (req, res)=>{
 router.delete('/ratings/:ratingId', (req, res)=>{
     const ratingId = req.params.ratingId
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     db('ratings').where({id: ratingId}).andWhere({userid: userid}).del()
         .then((data)=>res.json({isSuccess: true, details: 'Rating deleted'}))
@@ -412,8 +426,15 @@ router.delete('/ratings/:ratingId', (req, res)=>{
 router.get('/ratingcategories', (req, res)=>{
 
 
-    db('ratingcategories').select()
-        .then((data)=>res.json({isSuccess: true, data: data}))
+    db('ratingcategories').select('category').limit(5)
+        .then((data)=>{
+            let categoriesArray = []
+            for (let i=0; i<data.length; i++){
+                categoriesArray.push(data[i].category)
+            }
+
+            res.json({isSuccess: true, data: categoriesArray})
+        })
             .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get rating categories'})})
 })
 
@@ -472,26 +493,134 @@ router.delete('/ratingcategories/:ratingCategoriesId', (req, res)=>{
 // get user rating options
 router.get('/user/ratingoptions', (req, res)=>{
 
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     db('users').where({id: userid}).select('ratingoption1','ratingoption2','ratingoption3','ratingoption4')
         .then((data)=>res.json({isSuccess: true, data: data[0]}))
-            .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get user property'})})
+        .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get user property'})})
 })
 
 // get top rated homes
-
 router.get('/userproperties/:location', (req, res)=>{
 
     const location = req.params.location
-    // const {userid} = req.user
-    const userid = 34
+    const userid = req.user.id
+    
 
     db('userproperties').where({userid: userid}).andWhere({dashboardlocation: location}).orderBy('id').select('*')
         .then((data)=>res.json({isSuccess: true, data: data}))
         .catch(e => {console.log(e); res.status(400).json({isSuccess: false, details: 'Unable to get user property'})})
 })
+
+// update user settings
+router.put('/user', (req, res)=>{
+    const userid = req.user.id
+    
+
+    const { buyertype, movingwith, budget, ratingoption1, ratingoption2, ratingoption3, ratingoption4, email_contact, sms_contact, post_contact } = req.body
+
+
+        const updateUserSettings = () => {
+            return db('users').where({id: userid}).update({
+                buyertype: buyertype,
+                movingwith: movingwith,
+                budget: budget,
+                ratingoption1: ratingoption1,
+                ratingoption2: ratingoption2,
+                ratingoption3: ratingoption3,
+                ratingoption4: ratingoption4,
+                email_contact: email_contact,
+                sms_contact: sms_contact,
+                post_contact: post_contact,
+                dateupdated: new Date()
+            })
+                
+        }
+
+        const insertUnratedRating = (newRatingOption, websiteUrl, userId) => {
+            db('ratings').insert({
+                ratingoption: newRatingOption,
+                rating: 'Unrated',
+                websiteurl: websiteUrl,
+                userid: userId
+            })
+                .then(data => console.log('new rating inserted'))
+                .catch(console.log)
+        }
+
+        const checkIfRatingExists = (newRatingOption, websiteUrl, userId) => {
+            return db('ratings').where({userid: userId}).andWhere({websiteurl: websiteUrl}).andWhere({ratingoption: newRatingOption}).select().first()
+                .then(rating => {
+                    if (rating === undefined){
+                        return false
+                    }
+                })
+        }
+
+        const getUsersPropertyUrls = (userId) => {
+            return db('userproperties').where({userid: userId}).select('websiteurl')
+                .then(userProperties => {
+                    let websiteUrls = []
+                    for (let i=0; i<userProperties.length; i++){
+                        const websiteurl = userProperties[i].websiteurl
+                        websiteUrls.push(websiteurl)
+                    }
+                    return websiteUrls
+                })
+                .catch(console.log)
+        }
+
+
+
+        
+        db('users').where({id: userid}).select().first()
+            .then(user => {
+                const newRatingOptions = [ratingoption1, ratingoption2, ratingoption3, ratingoption4]
+
+
+                for (let i=0; i<4; i++){
+                    const currentRatingOption = user[`ratingoption${i+1}`]
+                    const newRatingOption = newRatingOptions[i]
+
+
+                    if (currentRatingOption !== newRatingOption){
+                        getUsersPropertyUrls(userid)
+                            .then(propertyUrls =>{
+                                for (let i=0; i<propertyUrls.length; i++){
+                                    const websiteUrl = propertyUrls[i]
+
+                                    checkIfRatingExists(newRatingOption, websiteUrl, userid)
+                                        .then(exists => {
+                                            if (!exists){
+                                                insertUnratedRating(newRatingOption, websiteUrl, userid)
+                                                    
+                                            }
+                                        })
+                                        .catch(e=> res.status(400).json({isSuccess: false, details: 'Unable update user settings'}))
+                                }
+                            })
+                            .catch(e=> res.status(400).json({isSuccess: false, details: 'Unable update user settings'}))
+                    }
+                }
+                
+                updateUserSettings()
+                    .then(()=> res.json({isSuccess: true, details: 'User settings updated'}))
+                    .catch(e=> res.status(400).json({isSuccess: false, details: 'Unable update user settings'}))
+
+            })
+            .catch(e=> res.status(400).json({isSuccess: false, details: 'Unable update user settings'}))
+            
+        
+        
+        
+        
+
+    
+})
+
+
+
 
 
 
