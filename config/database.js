@@ -7,6 +7,7 @@ require('dotenv').config()
 
 let knexSetup = {}
 
+console.log(process.env.PRODUCTION, process.env.CONNECTION_STRING)
 
 process.env.PRODUCTION === 'true' ?
     knexSetup = {
