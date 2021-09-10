@@ -5,26 +5,31 @@ const fs = require('fs')
 
 require('dotenv').config()
 
+let knexSetup = {}
 
 
+process.env.PRODUCTION === 'true' ?
+    knexSetup = {
+        client: 'pg',
+        connection:{
+            connectionString: process.env.CONNECTION_STRING,
+            ssl: { rejectUnauthorized: false }
+        },
+        useNullAsDefault: true,
+    }
+:
+    knexSetup = {
+        client: 'pg',
+        connection: {
+            host : process.env.DATABASE_HOST,
+            user : process.env.DATABASE_USERNAME,
+            password : process.env.DATABASE_PASSWORD,
+            database : process.env.DATABASE_NAME
+        },
+    }
 
-const db = knex({
-    client: 'pg',
-    connection: {
-        host : process.env.DATABASE_HOST,
-        user : process.env.DATABASE_USERNAME,
-        password : process.env.DATABASE_PASSWORD,
-        database : process.env.DATABASE_NAME
-    },
-    useNullAsDefault: true,
-    // connection: {
-    //     connectionString: process.env.CONNECTION,
-    //     ssl: {
-    //         rejectUnauthorized: false
-    //     }
-    // }
 
-});
+const db = knex(knexSetup);
 
 
 
@@ -33,7 +38,7 @@ const db = knex({
 
  db.select('*').from('users')
     .then(d=>console.log('connected'))
-    .catch(e=>console.log('not connected'))
+    .catch(e=>console.log(e))
 
 
 module.exports = db;
