@@ -80,6 +80,7 @@ const path = require('path')
 
 const authRoutes = require('./routes/authRoutes')
 const apiRoutes = require('./routes/apiRoutes')
+const adminRoutes = require('./routes/adminRoutes')
 
 
 require('dotenv').config();
@@ -104,6 +105,7 @@ app.use(cors())
 
 app.use('/auth', authRoutes)
 app.use('/api', passport.authenticate('jwt', { session: false }), apiRoutes)
+app.use('/admin', adminRoutes)
 
 
 
