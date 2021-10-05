@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const db = require('../config/database')
+const { removeUserFromMailchimp, resubscribeListMember } = require('../lib/mailchimpUtils')
 
 
 
@@ -516,9 +517,17 @@ router.get('/userproperties/:location', (req, res)=>{
 // update user settings
 router.put('/user', (req, res)=>{
     const userid = req.user.id
+    const email = req.user.email
     
 
     const { buyertype, movingwith, budget, ratingoption1, ratingoption2, ratingoption3, ratingoption4, email_contact, sms_contact, post_contact } = req.body
+
+
+    if (email_contact){
+        resubscribeListMember(email)
+    }else{
+        removeUserFromMailchimp(email)
+    }
 
 
         const updateUserSettings = () => {

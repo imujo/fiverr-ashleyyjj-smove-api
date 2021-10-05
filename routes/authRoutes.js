@@ -4,8 +4,8 @@ const genPassword = require('../lib/passwordUtils').genPassword;
 const db = require('../config/database')
 const jwtUtils = require('../lib/jwtUtils');
 const passwordUtils = require('../lib/passwordUtils');
-const mailchimp = require('@mailchimp/mailchimp_marketing')
-const superagent = require('superagent')
+const addUserToMailchimp = require('../lib/mailchimpUtils').addUserToMailchimp
+
 
 
 
@@ -57,30 +57,9 @@ router.post('/register', (req, res) => {
 
         
         // MAILCHIMP
-
-        const mailchimp_server = 'us5'
-        const mailchimp_audienceId = process.env.MAILCHIMP_AUDIENCE_ID
-        const mailchimp_apiKey = process.env.MAILCHIMP_APIKEY
+        addUserToMailchimp(email, firstname, lastname)
         
-        superagent
-            .post(`https://${mailchimp_server}.api.mailchimp.com/3.0/lists/${mailchimp_audienceId}/members`)
-            .set('Content-Type', 'application/json;charset=utf-8')
-            .set('Authorization', 'Basic ' + new Buffer.from('any:' + mailchimp_apiKey ).toString('base64'))
-            .send({
-            'email_address': email,
-            'status': 'subscribed',
-            'merge_fields': {
-                'FNAME': firstname,
-                'LNAME': lastname
-            }
-            })
-            .end(function(err, response) {
-                if (response.status < 300 || (response.status === 400 && response.body.title === "Member Exists")) {
-                    console.log('MAILCHIMP ADDED')
-                } else {
-                    console.log('MAILCHIMP NOT ADDED')
-                }
-            });
+        
 
 
     }
@@ -207,5 +186,20 @@ router.delete('/user/:userid', (req, res) => {
 
     
 })
+
+router.delete('/mailchimp/remove', (req, res)=>{
+
+    const email = req.body.email
+
+    removeUserFromMailchimp(email, res)
+})
+
+router.put('/mailchimp/resubscribe', (req, res)=>{
+
+    const email = req.body.email
+
+    resubscribeListMember(email, res)
+})
+
 
 module.exports = router;
