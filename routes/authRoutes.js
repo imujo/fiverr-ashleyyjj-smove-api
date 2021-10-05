@@ -4,8 +4,8 @@ const genPassword = require('../lib/passwordUtils').genPassword;
 const db = require('../config/database')
 const jwtUtils = require('../lib/jwtUtils');
 const passwordUtils = require('../lib/passwordUtils');
-
-
+const mailchimp = require('@mailchimp/mailchimp_marketing')
+const superagent = require('superagent')
 
 
 
@@ -54,6 +54,35 @@ router.post('/register', (req, res) => {
         email_contact = true;
         sms_contact = true;
         post_contact = true;
+
+        
+        // MAILCHIMP
+
+        const mailchimp_server = 'us5'
+        const mailchimp_audienceId = process.env.MAILCHIMP_AUDIENCE_ID
+        const mailchimp_apiKey = process.env.MAILCHIMP_APIKEY
+        
+        superagent
+            .post(`https://${mailchimp_server}.api.mailchimp.com/3.0/lists/${mailchimp_audienceId}/members`)
+            .set('Content-Type', 'application/json;charset=utf-8')
+            .set('Authorization', 'Basic ' + new Buffer.from('any:' + mailchimp_apiKey ).toString('base64'))
+            .send({
+            'email_address': email,
+            'status': 'subscribed',
+            'merge_fields': {
+                'FNAME': firstname,
+                'LNAME': lastname
+            }
+            })
+            .end(function(err, response) {
+                if (response.status < 300 || (response.status === 400 && response.body.title === "Member Exists")) {
+                    console.log('MAILCHIMP ADDED')
+                } else {
+                    console.log('MAILCHIMP NOT ADDED')
+                }
+            });
+
+
     }
 
     const userAlreadyExists = (email) => {
@@ -151,6 +180,32 @@ router.put('/ratingsetup', (req, res) => {
     }).then(() => res.json({ success: true}))
         .catch(e => res.status(400).json({ success: false}))
 
+})
+
+router.delete('/user/:userid', (req, res) => {
+
+    const userid = req.params.userid
+
+    try {
+
+        db('users').where({id: userid}).del()
+            .then(r => {
+                console.log(r)
+                db('userproperties').where({userid: userid}).del()
+                    .then(()=>{
+                        db('ratings').where({userid: userid}).del()
+                            .then(() => res.json({ isSuccess: true }))
+                            .catch(e => res.status(400).json({ isSuccess: false}))
+                    })
+            })
+            
+        
+    } catch (error) {
+        console.log("Couldn't delete userproperties")
+        res.status(400).json({ isSuccess: false})
+    }
+
+    
 })
 
 module.exports = router;

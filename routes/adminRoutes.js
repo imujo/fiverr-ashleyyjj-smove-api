@@ -3,7 +3,10 @@ const db = require('../config/database')
 
 const perPage = 10
 
+
+
 router.get('/noofpages/:table', (req, res)=>{
+
     
     const table = req.params.table
 
@@ -27,7 +30,8 @@ router.get('/users/:page', (req, res)=>{
 
     const range = [(page * perPage)-perPage, page * perPage]
 
-    db('users').select('id', 'email', 'firstname', 'lastname', 'buyertype', 'movingwith', 'budget', 'ratingoption1', 'ratingoption2', 'ratingoption3', 'ratingoption4', 'admin', 'datecreated')
+    // 'firstname', 'lastname', 'buyertype', 'movingwith', 'budget', 'ratingoption1', 'ratingoption2', 'ratingoption3', 'ratingoption4', 'admin', 'datecreated'
+    db('users').select('id', 'email')
         .then(data => {
             const slicedData = data.slice(range[0], range[1])
             res.json({isSuccess: true, data: slicedData})

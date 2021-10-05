@@ -620,6 +620,61 @@ router.put('/user', (req, res)=>{
 })
 
 
+// TOTAL NUMBERS
+router.get('/total', (req, res)=>{
+    
+    let object = []
+
+    console.log('total')
+
+
+    db('users').count('id')
+        .then(users => 
+            db('users').where({email_contact: true}).count('id')
+                .then(marketing => 
+                    db('userproperties').count('id')
+                        .then(properitesRated => 
+                                db('userproperties').where({dashboardlocation: 'viewed'}).count('id')
+                                    .then(viewed => 
+                                        db('userproperties').where({dashboardlocation: 'offers'}).count('id')   
+                                            .then(offers => {
+                                                object = [
+                                                    {
+                                                        title: 'Total Users',
+                                                        count: users[0].count
+                                                    },
+                                                    {
+                                                        title: 'Total Marketing',
+                                                        count: marketing[0].count
+                                                    },
+                                                    {
+                                                        title: 'Total Properties Rated',
+                                                        count: properitesRated[0].count
+                                                    },
+                                                    {
+                                                        title: 'Total Viewed Properties',
+                                                        count: viewed[0].count
+                                                    },
+                                                    {
+                                                        title: 'Total Offers Made',
+                                                        count: offers[0].count
+                                                    },
+                                                ]
+
+                                                res.json({isSuccess: true, data: object})
+                                            })
+                                            .catch(total => res.status(400).json({isSuccess: false, data: null}))
+                                    )
+                                    .catch(total => res.status(400).json({isSuccess: false, data: null}))
+                        )
+                        .catch(total => res.status(400).json({isSuccess: false, data: null}))
+                )
+                .catch(total => res.status(400).json({isSuccess: false, data: null}))
+        )
+        .catch(total => res.status(400).json({isSuccess: false, data: null}))
+
+})
+
 
 
 
