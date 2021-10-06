@@ -116,13 +116,14 @@ router.post('/userproperties', (req, res)=>{
     const userid = req.user.id
     
 
-    const { websiteurl } = req.body
+    const { websiteurl, rating_end_time } = req.body
     console.log(websiteurl)
     
 
 
     db('userproperties').insert({
         websiteurl: websiteurl,
+        rating_end_time: rating_end_time,
         userid: userid
     })
         .then((data)=>res.json({isSuccess: true, details: 'User property added'}))
@@ -683,7 +684,6 @@ router.get('/total', (req, res)=>{
         .catch(total => res.status(400).json({isSuccess: false, data: null}))
 
 })
-
 
 
 
