@@ -519,6 +519,7 @@ router.get('/userproperties/:location', (req, res)=>{
 router.put('/user', (req, res)=>{
     const userid = req.user.id
     const email = req.user.email
+
     
 
     const { buyertype, movingwith, budget, ratingoption1, ratingoption2, ratingoption3, ratingoption4, email_contact, sms_contact, post_contact } = req.body
@@ -547,6 +548,13 @@ router.put('/user', (req, res)=>{
             })
                 
         }
+
+        const deleteRating = (ratingOption, websiteUrl, userId) => {
+            db('ratings').where({userid: userId}).andWhere({ratingoption: ratingOption}).andWhere({websiteurl: websiteUrl}).del()
+                .then(d => console.log('Deleted old rating'))
+                .catch(console.log)
+        }
+        
 
         const insertUnratedRating = (newRatingOption, websiteUrl, userId) => {
             db('ratings').insert({
@@ -587,6 +595,7 @@ router.put('/user', (req, res)=>{
         db('users').where({id: userid}).select().first()
             .then(user => {
                 const newRatingOptions = [ratingoption1, ratingoption2, ratingoption3, ratingoption4]
+                
 
 
                 for (let i=0; i<4; i++){
@@ -595,6 +604,7 @@ router.put('/user', (req, res)=>{
 
 
                     if (currentRatingOption !== newRatingOption){
+                        
                         getUsersPropertyUrls(userid)
                             .then(propertyUrls =>{
                                 for (let i=0; i<propertyUrls.length; i++){
@@ -602,7 +612,9 @@ router.put('/user', (req, res)=>{
 
                                     checkIfRatingExists(newRatingOption, websiteUrl, userid)
                                         .then(exists => {
+                                            console.log(exists)
                                             if (!exists){
+                                                deleteRating(currentRatingOption, websiteUrl, userid)
                                                 insertUnratedRating(newRatingOption, websiteUrl, userid)
                                                     
                                             }
