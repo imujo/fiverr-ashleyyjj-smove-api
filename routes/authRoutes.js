@@ -5,8 +5,9 @@ const db = require('../config/database')
 const jwtUtils = require('../lib/jwtUtils');
 const passwordUtils = require('../lib/passwordUtils');
 const addUserToMailchimp = require('../lib/mailchimpUtils').addUserToMailchimp
-
-
+const crypto = require("crypto")
+const bcrypt = require("bcrypt")
+const sendEmail = require('../lib/sendEmail')
 
 
 router.post('/login', (req, res)=>{
@@ -110,6 +111,102 @@ router.post('/register', (req, res) => {
 
 
 });
+
+router.post('/req-pswrd-reset', (req, res)=>{
+
+    const deleteToken = (email) => {
+        db('users').where({email: email}).update({reset_token: null})
+
+    }
+
+    const email = req.body.email
+
+    db('users').where({email: email}).first()
+        .then(user => {
+            // does user exist
+            if (!user) { res.status(400).json({isSuccess: false, details: 'User does not exist'}) }
+
+            const token = user.reset_token
+
+            // delete token if exists
+            if (token){
+                deleteToken(email)
+            }
+
+            // create a new reset token and hash it
+            let resetToken = crypto.randomBytes(32).toString("hex")
+            bcrypt.hash(resetToken, Number(process.env.BCRYPT_SALT))
+                .then(hash =>{
+                    // store hash in the database
+                    db('users').where({email: email}).update({
+                        reset_token: hash
+                    })
+                        .then(()=>{
+                            // create the link
+                            const link = `dashboard.mysmove.com/passwordReset?token=${resetToken}&id=${user.id}`
+                
+                            // send email with unhashed token and user id
+                            sendEmail(email, "Password Reset Request", {name: user.firstname, link: link}, "template/resetPassword.handlebars")
+                
+                            res.json({isSuccess: true})
+        
+                        })
+                        .catch(e =>{
+                            console.log(e)
+                            res.status(400).json({isSuccess: false, details: 'Could not set user token'})
+                        })
+
+                })
+                .catch(e =>{
+                    console.log(e)
+                    res.status(400).json({isSuccess: false, details: 'Could not hash token'})
+                })
+
+
+
+
+        })
+        .catch((e)=> {console.log(e); res.status(400).json({isSuccess: false, details: 'Could not get user from database'})})
+
+})
+
+router.post('/reset-password', (req, res)=>{
+
+    const { userId, reset_token, password } = req.body
+
+    db('users').where({id: userId}).first()
+        .then(user => {
+
+            // does user have token
+            if (!user.reset_token) { res.status(400).json({isSuccess: false, details: 'User does not have a token'}) }
+
+            // if token from database = token from link
+            console.log(reset_token, user.reset_token)
+            bcrypt.compare(reset_token, user.reset_token)
+                .then(isValid => {
+                    console.log(isValid)
+                    if (!isValid){
+                        res.status(400).json({isSuccess: false, details: 'Token is not valid'})
+                    }
+        
+                    // gen salt and hash from new password and update user
+                    const { salt, hash } = genPassword(password)
+        
+                    db('users').where({id: userId}).update({
+                        hash: hash,
+                        salt: salt,
+                        reset_token: null
+                    })
+                        .then(() => res.json({isSuccess: true}))
+                        .catch(() => res.status(400).json({isSuccess: false, details: 'Could not update password'}))
+        
+                })
+                .catch((e)=> {console.log(e); res.status(400).json({isSuccess: false, details: 'Could not get user from database'})})
+                    
+                })
+
+
+})
 
 
 
