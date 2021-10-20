@@ -12,6 +12,7 @@ const sendEmail = require('../lib/sendEmail')
 
 router.post('/login', (req, res)=>{
     const { email, password } = req.body
+    email = email.toLowerCase()
     console.log('login')
 
     db('users').where({email: email}).select().first()
@@ -44,6 +45,7 @@ router.post('/login', (req, res)=>{
 
 router.post('/register', (req, res) => {
     const { email, password, marketing, firstname, lastname } = req.body
+    email = email.toLowerCase()
 
     const { salt, hash } = genPassword(password)
 
